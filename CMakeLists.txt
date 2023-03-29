@@ -3,4 +3,4 @@ project(IniFile)
 
 set(CMAKE_CXX_STANDARD 11)
 
-add_library(${PROJECT_NAME} INTERFACE IniFile.h IniSection.h)
+add_library(${PROJECT_NAME} INTERFACE src/IniFile.h src/IniSection.h)
