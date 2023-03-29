@@ -29,5 +29,11 @@ bool keyFlag = file.keyExists("section", "key");
 file.save();
 ```
 
-## Build
+## CMake
 
+```cmake
+# CMakeLists.txt
+add_subdirectory(IniFile)
+...
+target_link_libraries(${PROJECT_NAME} PRIVATE IniFile)
+```
