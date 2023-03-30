@@ -1,4 +1,4 @@
-# iniFile
+# IniFile
 
 ## Example
 
