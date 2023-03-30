@@ -35,5 +35,5 @@ file.save();
 # CMakeLists.txt
 add_subdirectory(IniFile)
 ...
-target_link_libraries(${PROJECT_NAME} PRIVATE IniFile)
+target_link_libraries(${PROJECT_NAME} IniFile)
 ```
