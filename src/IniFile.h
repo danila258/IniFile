@@ -1,5 +1,5 @@
-#ifndef IniFile_H
-#define IniFile_H
+#ifndef INIFILE_H
+#define INIFILE_H
 
 #include "IniSection.h"
 
@@ -108,4 +108,4 @@ void IniFile::writeKeyValue(const IniSection& section, const std::string& key, T
 }
 
 
-#endif  //IniFile_H
+#endif  //INIFILE_H
