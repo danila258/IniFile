@@ -137,6 +137,24 @@ void IniFile::save() const
 }
 
 template<>
+char IniFile::read(const IniSection& section, const std::string& key, char defaultValue)
+{
+    auto pairIt = getIterator(section);
+
+    if (pairIt == _data.end() || pairIt->second.find(key) == pairIt->second.end())
+    {
+        return defaultValue;
+    }
+
+    if (pairIt->second[key].size() > 1)
+    {
+        throw std::runtime_error( addLineNum(pairIt, key, "more than one character") );
+    }
+
+    return pairIt->second[key].front();
+}
+
+template<>
 bool IniFile::read(const IniSection& section, const std::string& key, bool defaultValue)
 {
     auto it = getIterator(section);
@@ -346,8 +364,7 @@ std::string IniFile::readWord(const std::string& line)
     return line.substr(startPos, endPos);
 }
 
-std::unordered_multimap<IniFile::element, std::unordered_map<IniFile::element, std::string, IniFile::elementHash>, IniFile::elementHash>::iterator
-IniFile::getIterator(const IniSection& section)
+IniFile::dataIterator IniFile::getIterator(const IniSection& section)
 {
     auto it = _data.equal_range(section);
 
@@ -361,8 +378,14 @@ IniFile::getIterator(const IniSection& section)
     return it.first;
 }
 
-size_t IniFile::getIteratorIndex(std::unordered_multimap<element, std::unordered_map<element, std::string, elementHash>, elementHash>::iterator it)
+size_t IniFile::getIteratorIndex(dataIterator it)
 {
     auto firstIt = _data.equal_range(it->first._name).first;
     return std::distance(firstIt, it);
+}
+
+std::string IniFile::addLineNum(dataIterator it, const std::string& key, const std::string& message)
+{
+
+    return message + " in line: " + std::to_string(it->second.find(key)->first._lineNum);
 }

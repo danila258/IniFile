@@ -10,7 +10,15 @@ struct IniSection
 public:
     IniSection(std::string section, size_t index = 0, size_t lineNum = 0);
     IniSection(const char* section, size_t index = 0, size_t lineNum = 0);
+
+    explicit IniSection(const IniSection& other);
+    IniSection& operator=(const IniSection& other);
+
+    explicit IniSection(IniSection&& other);
+    IniSection& operator=(IniSection&& other);
+
     operator std::string() const;
+
     friend std::string operator+(const std::string& str, const IniSection& section);
 
     size_t getIndex() const;

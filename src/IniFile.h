@@ -9,6 +9,8 @@
 #include <fstream>
 #include <sstream>
 #include <algorithm>
+#include <type_traits>
+#include <cctype>
 
 
 namespace alias
@@ -21,6 +23,23 @@ namespace alias
 
 class IniFile
 {
+private:
+    struct element
+    {
+        element(const IniSection& section);
+        element(std::string name, size_t lineNum = 0);
+
+        std::string _name;
+        size_t _lineNum;
+
+        bool operator==(const element& other) const;
+    };
+
+    struct elementHash
+    {
+        std::size_t operator()(const element& elem) const noexcept;
+    };
+
 public:
     explicit IniFile(std::string path);
 
@@ -48,50 +67,75 @@ public:
     size_t getKeyLineNum(const IniSection& section, const std::string& key);
 
 private:
-    struct element
-    {
-        element(const IniSection& section);
-        element(std::string  name, size_t lineNum = 0);
-
-        std::string _name;
-        size_t _lineNum;
-
-        bool operator==(const element& other) const;
-    };
-
-    struct elementHash
-    {
-        std::size_t operator()(const element& elem) const noexcept;
-    };
-
     std::string _path;
     std::unordered_multimap<element, std::unordered_map<element, std::string, elementHash>, elementHash> _data;
 
+    using dataIterator = std::unordered_multimap<element, std::unordered_map<element, std::string, elementHash>, elementHash>::iterator;
+
     static std::string readWord(const std::string& line);
 
-    std::unordered_multimap<element, std::unordered_map<element, std::string, elementHash>, elementHash>::iterator
-    getIterator(const IniSection& section);
+    dataIterator getIterator(const IniSection& section);
+    size_t getIteratorIndex(dataIterator it);
 
-    size_t getIteratorIndex(std::unordered_multimap<element, std::unordered_map<element, std::string, elementHash>, elementHash>::iterator it);
+    std::string addLineNum(dataIterator it, const std::string& key, const std::string& message);
 };
 
 
 template<typename T>
 T IniFile::read(const IniSection& section, const std::string& key, T defaultValue)
 {
-    auto it = getIterator(section);
+    auto pairIt = getIterator(section);
 
-    if (it == _data.end() || it->second.find(key) == it->second.end())
+    if (pairIt == _data.end() || pairIt->second.find(key) == pairIt->second.end())
     {
         return defaultValue;
     }
 
-    T var;
+    const std::string& line = pairIt->second.find(key)->second;
 
-    std::istringstream stream( it->second[key] );
-    stream >> var;
+    if (std::is_integral_v<T> || std::is_floating_point_v<T>)
+    {
+        size_t dotCount = 0;
 
-    return var;
+        for (auto it = line.begin(); it != line.end(); ++it)
+        {
+            if (*it == '-')
+            {
+                if (it != line.begin())
+                {
+                    throw std::runtime_error( addLineNum(pairIt, key, "wrong '-' position") );
+                }
+            }
+            else if (*it == '.')
+            {
+                ++dotCount;
+            }
+            else if ( !std::isdigit(*it) )
+            {
+                throw std::runtime_error( addLineNum(pairIt, key, "not digit character in digit value") );
+            }
+        }
+
+        if (dotCount > 1)
+        {
+            throw std::runtime_error(addLineNum(pairIt, key, "incorrect number of dots"));
+        }
+    }
+
+    if ( std::is_unsigned_v<T> )
+    {
+        if (line.find('-') != std::string::npos)
+        {
+            throw std::runtime_error( addLineNum(pairIt, key, "minus in unsigned value") );
+        }
+    }
+
+    T value;
+
+    std::istringstream stream(pairIt->second[key] );
+    stream >> value;
+
+    return value;
 }
 
 template<typename T>
@@ -104,7 +148,7 @@ void IniFile::writeKeyValue(const IniSection& section, const std::string& key, T
         return;
     }
 
-    it->second[key] = std::to_string(value);
+    it->second[key] << std::to_string(value);
 }
 
 
