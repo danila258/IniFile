@@ -93,7 +93,7 @@ T IniFile::read(const IniSection& section, const std::string& key, T defaultValu
 
     const std::string& line = pairIt->second.find(key)->second;
 
-    if (std::is_integral_v<T> || std::is_floating_point_v<T>)
+    if (std::is_integral<T>() || std::is_floating_point<T>())
     {
         size_t dotCount = 0;
 
@@ -122,7 +122,7 @@ T IniFile::read(const IniSection& section, const std::string& key, T defaultValu
         }
     }
 
-    if ( std::is_unsigned_v<T> )
+    if ( std::is_unsigned<T>() )
     {
         if (line.find('-') != std::string::npos)
         {
