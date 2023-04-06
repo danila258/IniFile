@@ -361,6 +361,11 @@ std::string IniFile::readWord(const std::string& line)
         --endPos;
     }
 
+    if ( line.find(parser::commentStart) != std::string::npos)
+    {
+        return line.substr(startPos, line.find(parser::commentStart) - 1);
+    }
+
     return line.substr(startPos, endPos);
 }
 

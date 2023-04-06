@@ -13,6 +13,13 @@
 #include <cctype>
 
 
+namespace parser
+{
+    constexpr auto numSeparator = '.';
+    constexpr auto commentStart = ';';
+    constexpr auto minus = '-';
+}
+
 namespace alias
 {
     constexpr std::array<const char*, 4> trueValue = {"true", "on", "yes", "1"};
@@ -99,14 +106,14 @@ T IniFile::read(const IniSection& section, const std::string& key, T defaultValu
 
         for (auto it = line.begin(); it != line.end(); ++it)
         {
-            if (*it == '-')
+            if (*it == parser::minus)
             {
                 if (it != line.begin())
                 {
                     throw std::runtime_error( addLineNum(pairIt, key, "wrong '-' position") );
                 }
             }
-            else if (*it == '.')
+            else if (*it == parser::numSeparator)
             {
                 ++dotCount;
             }
