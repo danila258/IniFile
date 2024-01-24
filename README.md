@@ -1,5 +1,7 @@
 # IniFile
 
+Library for work with INI files wich have duplicate sections.
+ 
 ## Example
 
 ```cpp
